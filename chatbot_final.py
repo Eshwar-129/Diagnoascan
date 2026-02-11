@@ -38,7 +38,7 @@ def create_chatbot(pdf_paths, chunk_size=1000, chunk_overlap=100):
     embeddings = OpenAIEmbeddings(
         model="text-embedding-3-small",
         openai_api_base="https://openrouter.ai/api/v1",
-        openai_api_key="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",
+        openai_api_key="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",
     )
 
     # 4️⃣ Build FAISS vectorstore
@@ -49,7 +49,7 @@ def create_chatbot(pdf_paths, chunk_size=1000, chunk_overlap=100):
         model="openai/gpt-4o-mini",  # or "mistralai/mistral-7b-instruct"
         temperature=0,
         openai_api_base="https://openrouter.ai/api/v1",
-        openai_api_key="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",
+        openai_api_key="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",
     )
 
     # 6️⃣ Create RetrievalQA pipeline
@@ -67,3 +67,4 @@ def create_chatbot(pdf_paths, chunk_size=1000, chunk_overlap=100):
 #    bot = create_chatbot(["sample.pdf"])
 #    query = "Summarize the main topic of this document."
 #    print("💬 Answer:", bot.run(query))
+

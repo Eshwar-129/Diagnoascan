@@ -38,7 +38,7 @@ def create_chatbot(pdf_paths, chunk_size=1000, chunk_overlap=100):
     embeddings = OpenAIEmbeddings(
         model="text-embedding-3-small",
         openai_api_base="https://openrouter.ai/api/v1",
-        openai_api_key="ssk-or-v1-6802839d7b5dd02aec612153f98736659b9aff87a2923345fe4e30c9369d546c",
+        openai_api_key="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",
     )
 
     # 4️⃣ Build FAISS vectorstore
@@ -49,7 +49,7 @@ def create_chatbot(pdf_paths, chunk_size=1000, chunk_overlap=100):
         model="openai/gpt-4o-mini",  # or "mistralai/mistral-7b-instruct"
         temperature=0,
         openai_api_base="https://openrouter.ai/api/v1",
-        openai_api_key="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",
+        openai_api_key="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",
     )
 
     # 6️⃣ Create RetrievalQA pipeline

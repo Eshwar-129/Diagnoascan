@@ -11,7 +11,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from datetime import datetime
-#from chatbot_final import create_chatbot
+from chatbot_final import create_chatbot
+from chatbot_final import ask_question
 
 # ------------------------------
 # Page Config
@@ -370,4 +371,24 @@ def main():
 if __name__ == "__main__":
     main()
 
+st.divider()
+st.sidebar.header("💬 Disease Chatbot")
 
+# Load chatbot only once
+PDF_PATHS = ["pneumo pdf.pdf", "PE-Brain-tumors_UCNI.pdf"]
+
+rag_chain, llm, db = create_chatbot(PDF_PATHS)
+
+st.divider()
+st.sidebar.header("💬 Disease Chatbot")
+
+# Sidebar chatbot input
+user_question = st.sidebar.text_input("Ask about Pneumothorax or Brain Tumor:")
+
+if user_question:
+    with st.spinner("Fetching answer..."):
+        try:
+            answer = ask_question(user_question, rag_chain, llm, db)
+            st.sidebar.success(answer)
+        except Exception as e:
+            st.sidebar.error(f"Error: {e}")

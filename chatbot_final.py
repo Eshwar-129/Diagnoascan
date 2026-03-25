@@ -5,66 +5,73 @@ from langchain_classic.chains import RetrievalQA
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 
 
-def create_chatbot(pdf_paths, chunk_size=1000, chunk_overlap=100):
-    """
-    Creates a chatbot using an OpenRouter-hosted GPT-4 model with FAISS retrieval from PDF documents.
+#OPEN_ROUTER_API="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"
+OPEN_ROUTER_API="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"
 
-    Args:
-        pdf_paths (list): List of PDF file paths.
-        chunk_size (int): Max characters per chunk.
-        chunk_overlap (int): Overlap characters between chunks.
 
-    Returns:
-        RetrievalQA chatbot instance.
-    """
+# =========================
+# CREATE CHATBOT
+# =========================
+def create_chatbot(pdf_paths):
 
-    # 1️⃣ Read PDFs
+    # -------- Read PDFs --------
     full_text = ""
     for path in pdf_paths:
         reader = PdfReader(path)
         for page in reader.pages:
-            full_text += page.extract_text() + "\n"
+            text = page.extract_text()
+            if text:
+                full_text += text + "\n"
 
-    # 2️⃣ Split into manageable chunks
+    # -------- Split --------
     splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap
+        chunk_size=1000,
+        chunk_overlap=100
     )
     chunks = splitter.split_text(full_text)
-    print(f"[INFO] Total chunks created: {len(chunks)}")
 
-    # 3️⃣ Create embeddings (you can use OpenRouter-compatible ones)
+    # -------- Embeddings --------
     embeddings = OpenAIEmbeddings(
-        model="text-embedding-3-small",
-        openai_api_base="https://openrouter.ai/api/v1",
-        openai_api_key="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",
+        model="text-embedding-3-large",
+        api_key=OPEN_ROUTER_API,
+        base_url="https://openrouter.ai/api/v1"
     )
 
-    # 4️⃣ Build FAISS vectorstore
-    db = FAISS.from_texts(chunks, embedding=embeddings)
+    db = FAISS.from_texts(chunks, embeddings)
 
-    # 5️⃣ Initialize OpenRouter LLM
+    # -------- LLM --------
     llm = ChatOpenAI(
-        model="openai/gpt-4o-mini",  # or "mistralai/mistral-7b-instruct"
+        model="gpt-4o-mini",
         temperature=0,
         openai_api_base="https://openrouter.ai/api/v1",
-        openai_api_key="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",
+        openai_api_key=OPEN_ROUTER_API
     )
 
-    # 6️⃣ Create RetrievalQA pipeline
-    chatbot = RetrievalQA.from_chain_type(
+    # -------- RAG chain --------
+    rag_chain = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=db.as_retriever(search_kwargs={"k": 3}),
         chain_type="stuff"
     )
 
-    return chatbot
+    return rag_chain, llm, db
 
 
-# Example usage
-#if __name__ == "__main__":
-#    bot = create_chatbot(["sample.pdf"])
-#    query = "Summarize the main topic of this document."
-#    print("💬 Answer:", bot.run(query))
+# =========================
+# ASK QUESTION
+# =========================
+def ask_question(question, rag_chain, llm, db):
 
+    # Step 1: search documents
+    docs = db.similarity_search(question, k=2)
+
+    # Step 2: if relevant docs found → use RAG
+    if docs and len(docs[0].page_content.strip()) > 30:
+        print("📄 Answering from PDF...")
+        result = rag_chain.invoke({"query": question})
+        return result["result"]
+
+    # Step 3: fallback → normal chatbot
+    else:
+        print("🤖 General chatbot answer...")
+        return llm.invoke(question).content

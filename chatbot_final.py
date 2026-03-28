@@ -6,7 +6,8 @@ from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 
 
 #OPEN_ROUTER_API="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"
-OPEN_ROUTER_API="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"
+#OPEN_ROUTER_API="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"
+OPEN_ROUTER_API="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"
 
 
 # =========================
